@@ -1,9 +1,131 @@
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
+import React from 'react';
+//import ReactDOM from 'react-dom';
 
-export class MG_NavbarMenu extends React.Component{
-  render() {
-    let menuData = <span>{this.props.menuDataUrl}</span>
+var MenuSimpleItem = React.createClass({
+  propTypes: {
+    itemText:React.PropTypes.string,
+    itemUrl:React.PropTypes.string,
+    itemExternalUrl:React.PropTypes.bool,
+    itemSelected:React.PropTypes.bool,
+    header:React.PropTypes.bool
+  },
+  getDefaultProps: function() {
+    return {
+      itemExternalUrl: true,
+      itemSelected: false,
+      header:false
+    }
+  },
+  render: function () {
+    var text = this.props.itemText;
+    var url = this.props.itemUrl;
+    var selected = this.props.itemSelected ? "active" : "";
+    var target = this.props.itemExternalUrl ? "_blank":"";
+    if (this.props.header)
+    {
+      return (
+        <li className="dropdown-header"><strong>{text}</strong></li>
+      );
+    }
+    else {
+      return (
+        <li className={selected}><a href={url} target={target}>{text}</a></li>
+      );
+    }
+  }
+});
+
+var MenuItem = React.createClass({
+  propTypes: {
+    itemText:React.PropTypes.string.isRequired,
+    itemUrl:React.PropTypes.string,
+    itemExternalUrl:React.PropTypes.bool,
+    itemSelected:React.PropTypes.bool,
+    itemSubItems:React.PropTypes.array,
+    header:React.PropTypes.bool
+  },
+  getDefaultProps: function() {
+    return {
+      itemExternalUrl: true,
+      itemSelected: false
+    }
+  },
+  render: function () {
+    var text = this.props.itemText;
+    var url = this.props.itemUrl;
+    var selected = this.props.itemSelected ? "active" : "";
+    var target = this.props.itemExternalUrl ? "_blank":"";
+
+    if (this.props.itemSubItems==undefined || this.props.itemSubItems==[])
+    {
+      return <MenuSimpleItem
+      key={this.props.itemText}
+      itemText={this.props.itemText}
+      itemUrl={this.props.itemUrl}
+      itemExternalUrl={this.props.itemExternalUrl}
+      itemSelected={this.props.itemSelected}
+      header={this.props.header}
+      />
+    }
+    else
+    {
+      var items = this.props.itemSubItems.map(function(subItem) {
+        return (
+          <MenuItem
+          key={subItem.Text}
+          itemText={subItem.Text}
+          itemUrl={subItem.Url}
+          itemExternalUrl={subItem.ExternalUrl}
+          itemSelected={subItem.Selected}
+          itemSubItems={subItem.SubMenu}
+          header={subItem.header}
+          />
+        );
+      });
+      return (
+        <li className="dropdown">
+        <a href="#" className="dropdown-toggle" data-toggle="dropdown">{text}<b className="caret"></b></a>
+        <ul className="dropdown-menu">
+        {items}
+        </ul>
+        </li>
+      );
+    }
+  }
+});
+
+var MainMenu = React.createClass({
+  propTypes: {
+    appName:React.PropTypes.string.isRequired
+  },
+  render: function () {
+    var menu ={
+      items:[
+        {Text:"google", Url:"http://www.google.com", ExternalUrl:true},
+        {Text:"facebook", Url:"http://www.facebook.com",ExternalUrl:true, Selected:true},
+        {Text:"SubMenu", Url:"#", SubMenu:[
+          {Text:"submenu-1.1", Url:"http://www.gazzetta.it", header:true},
+          {Text:"submenu-1.2", Url:"http://www.corriere.it", ExternalUrl:false, header:false},
+          {Text:"submenu-2.1", Url:"http://www.gazzetta.it", header:true},
+          {Text:"submenu-2.2", Url:"http://www.corriere.it", ExternalUrl:false}
+        ]}
+      ]
+    };
+
+    var items = menu.items.map(function(menuItem) {
+      return (
+        <MenuItem
+        key={menuItem.Text}
+        itemText={menuItem.Text}
+        itemUrl={menuItem.Url}
+        itemExternalUrl={menuItem.ExternalUrl}
+        itemSelected={menuItem.Selected}
+        itemSubItems={menuItem.SubMenu}
+        Header={menuItem.header}
+        />
+      );
+    });
+
     return (
       <nav className="navbar navbar-default" role="navigation">
       <div className="container-fluid">
@@ -19,47 +141,12 @@ export class MG_NavbarMenu extends React.Component{
       {/* Collect the nav links, forms, and other content for toggling */}
       <div className="collapse navbar-collapse" id="navbar">
       <ul className="nav navbar-nav">
-      <li className="active"><a href="#">Dashboard</a></li>
-      <li><a href="#">Movimenti</a></li>
-      <li className="dropdown">
-      <a href="#" className="dropdown-toggle" data-toggle="dropdown">Impostazioni<b className="caret"></b></a>
-      <ul className="dropdown-menu">
-      <li className="dropdown-header"><strong>Generali</strong></li>
-      <li><a href="#">Gruppi voci di spesa</a></li>
-      <li><a href="#">Voci di spesa</a></li>
-      <li className="divider"></li>
-      <li className="dropdown-header"><strong>Utente</strong></li>
-      <li><a href="#">Banche</a></li>
-      <li><a href="#">Conti Correnti</a></li>
-      </ul>
-      </li>
-      </ul>
-      <ul className="nav navbar-nav navbar-right">
-      <button type="button" className="btn btn-default navbar-btn">Sign in</button>
-      <p className="navbar-text">Signed in as <a href="#" className="navbar-link">Marco</a></p>
+      {items}
       </ul>
       </div>{/* /.navbar-collapse */}
       </div>{/* /.container-fluid */}
       </nav>
     );
   }
-}
-
-MG_NavbarMenu.propTypes = {
-  appName: React.PropTypes.string.isRequired,
-  menuDataUrl: React.PropTypes.string.isRequired
-}
-{/*
-class MG_NavbarItemSimple extends React.Components{
-  render(){
-    return (
-      <li><a href={this.props.url}>{this.props.text}</a></li>
-    );
-  }
-}
-
-MG_NavbarItemSimple.propTypes = {
-  text: React.PropTypes.string.isRequired,
-  url: React.PropTypes.string.isRequired
-}
-*/}
+});
+export default MainMenu;
